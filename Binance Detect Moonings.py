@@ -1,6 +1,6 @@
 """
 Olorin Sledge Fork
-Version: 1.24
+Version: 1.25
 
 Disclaimer
 
@@ -23,7 +23,7 @@ See requirements.txt for versions of modules needed
     3) If it is a pausebot signal, you need to create a signals/pausebot.pause file
     All these changes are within the external signal itself and is really easy to do via Find/Replace (advice you manually review any replace you do).
 
-FUNCTIONALITY:
+FUNCTIONALITY
 - Changed way profit % is calculated to be based on ROI
 - More details provided on screen on state of bot (i.e.  unrealised session profit, session profit, all time profit, bot paused or not etc)
 - Totally reworked external signals. NOTE: you CANNOT use the default signals anymore with my bot unless you modify them to work with it
@@ -46,6 +46,27 @@ Added version 1.20:
 Added version 1.21:
 - Ability to "restart" an external signal via the RESTART_EXTSIGNALS setting. Please only use this is you know what you are doing. 99% of the time
       you will want this to be False
+
+Added version 1.25:
+- "BUYING MODE" added to summary info so you can easily tell if you are in Test mode or Live mode
+- "External Signals" added to summary info so you can tell which external signals you have running
+
+DONATIONS
+If you feel you would like to donate to me, for all the above improvements, I would greatly appreciate it. Please see donation options below.
+
+Bitcoin (BTC network): 1DMRzMWXRXLeTQ9mfN9uvMTeJHmkkG5oS8
+Etherium (ERC-20 network): 0x69566c866817c593d8a40a1b672afa3b7cfd69bf
+Matic (Polygon network): 0x69566c866817c593d8a40a1b672afa3b7cfd69bf
+BNB (BEP20 network): 0x69566c866817c593d8a40a1b672afa3b7cfd69bf
+Fantom (FTM network): 0x69566c866817c593d8a40a1b672afa3b7cfd69bf
+Algo (Algorand network): ML72MOJ7N3O4G4EGDLKICNOCMIBCH4U5I34WCXZ4B4HREPBA3ME7BOYPB4
+Nano (Nano network): nano_1en6m9rx9wgwqu5e1otedzprpgjbnrjs43gi9g94r5nu31ikc1heytt8qd74
+
+ORIGINAL BOT CREATOR
+This bot was forked from the original creation by CyberPunkMetalHead.
+You can find his repository of projects at https://github.com/CyberPunkMetalHead.
+You can find details to donate to him at his website, https://www.cryptomaton.org.
+
 """
 
 # use for environment variables
@@ -113,7 +134,11 @@ class txcolors:
     SELL_PROFIT = '\033[32m'
     DIM = '\033[2m\033[35m'
     DEFAULT = '\033[39m'
-
+    YELLOW = '\033[33m'
+    CYAN = '\033[96m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    ENDC = '\033[0m'
 
 # tracks profit/loss each session
 global session_profit_incfees_perc, session_profit_incfees_total, session_tpsl_override_msg, is_bot_running
@@ -403,10 +428,25 @@ def balance_report(last_price):
     
     market_profit = ((market_currprice - market_startprice)/ market_startprice) * 100
 
+    mode = "Live (REAL MONEY)"
+    discord_mode = "Live"
+    if TEST_MODE:
+        mode = "Test (no real money used)"
+        discord_mode = "Test"
+
+    font = f'{txcolors.ENDC}{txcolors.YELLOW}{txcolors.BOLD}{txcolors.UNDERLINE}'
+    extsigs = ""
+    for module in SIGNALLING_MODULES:
+        if extsigs == "":
+            extsigs = module
+        else:
+            extsigs = extsigs + ', ' + module
+
     print(f'')
     print(f'--------')
     print(f"STARTED         : {str(bot_started_datetime).split('.')[0]} | Running for: {str(datetime.now() - bot_started_datetime).split('.')[0]}")
     print(f'CURRENT HOLDS   : {len(coins_bought)}/{TRADE_SLOTS} ({float(CURRENT_EXPOSURE):g}/{float(INVESTMENT_TOTAL):g} {PAIR_WITH})')
+    print(f'BUYING MODE     : {font if mode == "Live (REAL MONEY)" else txcolors.DEFAULT}{mode}{txcolors.DEFAULT}{txcolors.ENDC}')
     print(f'Buying Paused   : {bot_paused}')
     print(f'')
     print(f'SESSION PROFIT (Inc Fees)')
@@ -419,13 +459,13 @@ def balance_report(last_price):
     print(f'Bot Profit      : {txcolors.SELL_PROFIT if historic_profit_incfees_perc > 0. else txcolors.SELL_LOSS}{historic_profit_incfees_perc:.4f}% Est:${historic_profit_incfees_total:.4f} {PAIR_WITH}{txcolors.DEFAULT}')
     print(f'Completed Trades: {trade_wins+trade_losses} (Wins:{trade_wins} Losses:{trade_losses})')
     print(f'Win Ratio       : {float(WIN_LOSS_PERCENT):g}%')
-    
+    print(f'')
+    print(f'External Signals: {extsigs}')
     print(f'--------')
     print(f'')
-    
     #msg1 = str(bot_started_datetime) + " | " + str(datetime.now() - bot_started_datetime)
     msg1 = str(datetime.now()).split('.')[0]
-    msg2 = " | " + str(len(coins_bought)) + "/" + str(TRADE_SLOTS) + " | PBOT: " + str(bot_paused)
+    msg2 = " | " + str(len(coins_bought)) + "/" + str(TRADE_SLOTS) + " | PBOT: " + str(bot_paused) + " | MODE: " + str(discord_mode)
     msg2 = msg2 + ' SPR%: ' + str(round(session_profit_incfees_perc,2)) + ' SPR$: ' + str(round(session_profit_incfees_total,4))
     msg2 = msg2 + ' SPU%: ' + str(round(unrealised_session_profit_incfees_perc,2)) + ' SPU$: ' + str(round(unrealised_session_profit_incfees_total,4))
     msg2 = msg2 + ' SPT%: ' + str(round(session_profit_incfees_perc + unrealised_session_profit_incfees_perc,2)) + ' SPT$: ' + str(round(session_profit_incfees_total+unrealised_session_profit_incfees_total,4))
