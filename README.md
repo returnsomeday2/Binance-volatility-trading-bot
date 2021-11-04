@@ -29,6 +29,10 @@ Please checkout our wiki pages:
 - [Configuration Guide](https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/wiki/Configuration)
 
 
+## Running the web UI
+1. cd UI
+2. streamlit run streamlit_page.py
+
 ## Running from docker
 To run the bot in docker:
 1. docker-compose build
