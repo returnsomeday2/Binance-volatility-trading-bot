@@ -31,10 +31,9 @@ Please checkout our wiki pages:
 
 ## Running from docker
 To run the bot in docker:
-docker-compose build
-docker-compose up
-
-Then you can access the bot data on http://localhost:8501
+1. docker-compose build
+2. docker-compose up
+3. Then you can access the bot data on http://localhost:8501
 
 ## Troubleshooting
 
