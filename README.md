@@ -28,6 +28,14 @@ Please checkout our wiki pages:
 - [Bot Strategy Guide](https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/wiki/Bot-Strategy-Guide)
 - [Configuration Guide](https://github.com/CyberPunkMetalHead/Binance-volatility-trading-bot/wiki/Configuration)
 
+
+## Running from docker
+To run the bot in docker:
+docker-compose build
+docker-compose up
+
+Then you can access the bot data on http://localhost:8501
+
 ## Troubleshooting
 
 1. Read the [FAQ](FAQ.md)
