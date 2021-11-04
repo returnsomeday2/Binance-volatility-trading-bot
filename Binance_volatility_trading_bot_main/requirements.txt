@@ -10,5 +10,3 @@ SQLAlchemy==1.4.25
 streamlit-aggrid
 pandas_ta
 ccxt
-dash==2.0.0
-dash-bootstrap-components==1.0.0
