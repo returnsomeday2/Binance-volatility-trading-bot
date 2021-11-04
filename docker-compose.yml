@@ -1,0 +1,11 @@
+services:
+  volatility_trade:
+    build:
+      context: .
+    restart: unless-stopped
+    container_name: volatility_trade
+    volumes:
+      - "./user_data:/user_data"
+      - "./Binance_volatility_trading_bot_main:/Binance_volatility_trading_bot_main"
+    ports:
+      - 8051:8051
