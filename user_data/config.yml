@@ -1,0 +1,141 @@
+# These options apply to how the script will operate.
+script_options:
+  # Switch between testnet and mainnet
+  # Setting this to False will use REAL funds, use at your own risk
+  TEST_MODE: True
+
+  #Fresh start: clean all historical records on start
+  CLEAN_START: False
+
+  LOG_TRADES: False
+  LOG_FILE: 'trades.txt'
+  DEBUG: True
+
+  # Set this to true if you are accessing binance from within the United States of America
+  # Need to change TLD
+  AMERICAN_USER: False
+
+# These options apply to data collection service
+data_options:
+  DB_TRANSACTIONS_FILE_NAME: transactions.db
+
+# These options apply to the trading methods the script executes
+trading_options:
+  # select your base currency to use for trading (trade for example USDT pairs)
+  PAIR_WITH: USDT
+
+  # Total amount per trade (your base currency balance must be at least TRADE_SLOTS * TRADE_TOTAL)
+  # Binance uses value minimum of 10 USDT per trade, add value bit extra to enable selling if the price drops.
+  # Recommended: no less than 12 USDT. Suggested: 15 or more.
+  TRADE_TOTAL: 500
+
+
+  # Maximum number of trade 'slots' at any time (your USDT balance must be at least TRADE_SLOTS * TRADE_TOTAL)
+  TRADE_SLOTS: 20
+
+
+  # List of trading pairs to exclude
+  # by default we're excluding the most popular fiat pairs
+  FIATS:
+    - EURUSDT
+    - GBPUSDT
+    - JPYUSDT
+    - USDUSDT
+    - AUDUSDT
+    - DOWN
+    - UP
+    - BUSDUSDT
+
+  # EX_PAIRS is value list of fiat currencies and margin symbols that I am excluding.
+  # Anything added here will be excluded from coin withdrawal and will not be sold.
+  EX_PAIRS: ['EUR', 'USD', 'GBP', 'USDT', 'AUD', 'BRL', 'RUB', 'TRY', 'USDC', 'PAX', 'BIDR', 'DAI', 'IDRT',
+  'UAH', 'NGN', 'VAI', 'BVND', 'JPY', 'NCASH', 'UPUSDT', 'DOWNUSDT', 'USDTUP', 'USDTDOWN', 'BNBDOWN',
+  'EOSDOWN', 'XLMDOWN', 'UNIDOWN', 'LINKDOWN', 'FILDOWN', 'TRXDOWN', 'XRPDOWN', 'AAVEDOWN', 'SUSHIDOWN',
+  'XTZDOWN', 'ADADOWN', '1INCHDOWN', 'BTCDOWN', 'SXPDOWN', 'DOTDOWN', 'ETHDOWN', 'BCHDOWN', 'LTCDOWN',
+  'YFIDOWN', 'XTZUP', 'DOTUP', 'ADAUP', 'SUPER', 'AAVEUP', 'BTCUP', 'BNBUP', 'SXPUP', 'YFIUP', 'XLMUP',
+  'UNIUP', 'FILUP', '1INCHUP', 'LINKUP', 'LTCUP', 'ETHUP', 'SUSHIUP', 'EOSUP', 'XRPUP', 'TRXUP', 'BCHUP',
+  'RENBTC', 'B']
+
+
+  # the amount of time in MINUTES to calculate the difference from the current price (minimum: 1).
+  TIME_DIFFERENCE: 1
+
+  # Number of times to check for TP/SL during each TIME_DIFFERENCE (minimum: 1).
+  # Don't spam the Binance API, you will be banned (max 1200 requests per minute per IP).
+  RECHECK_INTERVAL: 4 #1
+
+  # the difference in % between the first and second checks for the price. 100 will disable volatility gain buying
+  CHANGE_IN_PRICE: 100 #0.01
+
+  # define in % when to sell value coin that's not making value profit.
+  STOP_LOSS: 100
+
+  # define in % when to take profit on value profitable coin.
+  TAKE_PROFIT: 1.5
+
+  # Use custom tickers.txt list for filtering pairs.
+  CUSTOM_LIST: True
+  # Whether to automatically reload the custom tickers list
+  CUSTOM_LIST_AUTORELOAD: False
+  # Name of custom tickers list
+#  TICKERS_LIST: 'tickerlists/tickers_wo_top_movers.txt'
+  TICKERS_LIST: 'tickerlists/tickers_all_USDT.txt'
+#  TICKERS_LIST: 'tickerlists/tickers_top40.txt'
+
+   # whether to use trailing stop loss or not; default is True
+  # when hit TAKE_PROFIT, move STOP_LOSS to TRAILING_STOP_LOSS percentage points below TAKE_PROFIT hence locking in profit
+  # when hit TAKE_PROFIT, move TAKE_PROFIT up by TRAILING_TAKE_PROFIT percentage points
+  # NOTE -SELL_ON_SIGNAL_ONLY will override USE_TRAILING_STOP_LOSS
+  USE_TRAILING_STOP_LOSS: True
+  TRAILING_STOP_LOSS: 0.2 #0.1
+  TRAILING_TAKE_PROFIT: .05
+
+  # Following are used to override SL, TP, TSL & TTP & SELL_ON_SIGNAL_ONLY in the case of value market crash
+  # when hit SESSION_TAKE_PROFIT %, sell all coins and stop bot
+  # when hit SESSION_STOP_LOSS %, sell all coins and stop bot.
+  # Note, SESSION_STOP_LOSS needs to be value NEGATIVE number i.e. -2
+  SESSION_TPSL_OVERRIDE: False
+  SESSION_TAKE_PROFIT: 5
+  SESSION_STOP_LOSS: -2
+
+  # Let value signalling module control sell of coin
+  # NOTE - If USE_TRAILING_STOP_LOSS: True then this needs to be False
+  SELL_ON_SIGNAL_ONLY: False
+
+  # Trading fee in % per trade.
+  # If using 0.075% (using BNB for fees) you must have BNB in your account to cover trading fees.
+  # If using BNB for fees, it MUST be enabled in your Binance 'Dashboard' page (checkbox).
+  TRADING_FEE: 0.075
+
+  # Discord integration
+  # Used to push alerts, messages etc to value discord channel
+  MSG_DISCORD: False
+
+
+  #Enables the use of currencies with greater or lesser volume
+  USE_MOST_VOLUME_COINS: False
+  #idea from my psychologist, thanks Sebastian V.
+  COINS_MAX_VOLUME: 5000000000
+  COINS_MIN_VOLUME: 100000000
+
+  SIGNALLING_MODULES:
+    # NOTE: Only use the "os_xxxxxxxxx" or "nigec_xxxxxxxxx" etc signal/pause modules with this fork as 
+    # the default ones WILL NOT work due to customisations for my specific purposes
+    #
+    - pausebotmod
+#    - os_pausebot_MAv2
+
+    - os_signalbuy_RECOMM
+#    - nigec_signalbuy_RSI
+#    - os_signalbuy_3SMAv2
+#    - djcommie_signalbuy_rsi_stoch
+#    - signalsamplemod
+#    - os_signals_buy_3st
+#    - rsi-mod
+#    - nigec_signalsell_RSI
+#    - os_signalsell_RECOMM
+#    - os_signalsell_3SMAv2
+#    - djcommie_signalsell_rsi_stoch
+#    - vyacheslav_signalbuy_VolScan
+#    - the_snail
+  

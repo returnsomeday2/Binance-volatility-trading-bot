@@ -1,0 +1,20 @@
+__*__
+
+# Ignore virtual environment
+.venv
+
+# Ignore IDE settings
+.vscode
+
+# Ignore credentials file
+cred.yml
+
+# Ignore test/live files
+test*.txt
+live*.txt
+*.log
+*.json
+
+# Ignore special files
+_*.txt
+
