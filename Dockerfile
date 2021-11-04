@@ -12,9 +12,5 @@ COPY /Binance_volatility_trading_bot_main/. ./Binance_volatility_trading_bot_mai
 
 #EXPOSE 8501
 EXPOSE 8051
-
-#RUN sed -i 's/\r$//' ./start.sh  && \  
-#        chmod +x ./start.sh
-
 	
 CMD ./start.sh
