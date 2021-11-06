@@ -16,7 +16,7 @@ function(params) {
 
 coin_page_link = JsCode('''
     function(params){
-        return '<a target="_blank" href="https://www.binance.com/en/trade/' + params.value + '">' +  params.value + '</a>'
+        return '<a target="_blank" href="https://www.tradingview.com/chart/?symbol=BINANCE:' + params.value + '">' +  params.value + '</a>'
         }
     ''')
 
