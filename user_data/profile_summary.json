@@ -1,0 +1,22 @@
+{
+    "bot_paused": false,
+    "market_next_check_time": "",
+    "started": "",
+    "current_holds": 0,
+    "slots": 0,
+    "current_exposure": 0.0,
+    "invstment_total": 0.0,
+    "pair_with": "",
+    "realised_session_profit_incfees_perc": 0,
+    "realised_session_profit_incfees_total": 0,
+    "unrealised_session_profit_incfees_perc": 0.0,
+    "unrealised_session_profit_incfees_total": 0,
+    "session_profit_incfees_total_perc": 0.0,
+    "session_profit_incfees_total": 0,
+    "all_time_market_profit": 0.0,
+    "bot_profit_perc": 0,
+    "bot_profit": 0,
+    "trade_wins": 0,
+    "trade_losses": 0,
+    "win_ratio": 0.0
+}
