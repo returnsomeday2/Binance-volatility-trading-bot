@@ -114,20 +114,23 @@ with kpi12:
 st.markdown("<hr/>",unsafe_allow_html=True)
 
 
-transactions_df = pd.read_sql_query('select * from transactions', get_db_connection())
-transactions_df ['time_held'] =  pd.to_timedelta(transactions_df['time_held']).dt.floor(freq='s').astype('string')
-transactions_df['buy_time'] = pd.to_datetime(transactions_df['buy_time'])
-transactions_df['sell_time'] = pd.to_datetime(transactions_df['sell_time'])
+try:
+	transactions_df = pd.read_sql_query('select * from transactions', get_db_connection())
+	transactions_df ['time_held'] =  pd.to_timedelta(transactions_df['time_held']).dt.floor(freq='s').astype('string')
+	transactions_df['buy_time'] = pd.to_datetime(transactions_df['buy_time'])
+	transactions_df['sell_time'] = pd.to_datetime(transactions_df['sell_time'])
 
-open_columns = ["id", "buy_time", "symbol", "volume", "bought_at", "now_at", "change_perc", "profit_dollars", "time_held", "tp_perc", "sl_perc", "buy_signal"]
-open_trades = transactions_df.loc[transactions_df['closed'] == 0, open_columns]
+	open_columns = ["id", "buy_time", "symbol", "volume", "bought_at", "now_at", "change_perc", "profit_dollars", "time_held", "tp_perc", "sl_perc", "buy_signal"]
+	open_trades = transactions_df.loc[transactions_df['closed'] == 0, open_columns]
 
 
-closed_trades_columns = ["id", "buy_time", "symbol", "volume", "bought_at", "sold_at",  "change_perc", "profit_dollars", "sell_time", "time_held", "tp_perc", "sl_perc", "buy_signal", "sell_reason"]
-closed_trades = transactions_df.loc[transactions_df['closed'] == 1, closed_trades_columns]
+	closed_trades_columns = ["id", "buy_time", "symbol", "volume", "bought_at", "sold_at",  "change_perc", "profit_dollars", "sell_time", "time_held", "tp_perc", "sl_perc", "buy_signal", "sell_reason"]
+	closed_trades = transactions_df.loc[transactions_df['closed'] == 1, closed_trades_columns]
 
-st.markdown(f"### **Open Trades (Winning: <span style='color:green;'>{open_trades[open_trades.change_perc > 0].change_perc.count()}</span> | Loosing: <span style='color:red;'>{open_trades[open_trades.change_perc <= 0].change_perc.count()}</span>) **",
-        unsafe_allow_html=True)
-report_open_trades(open_trades)
-st.markdown("### **Closed Trades**")
-report_closed_trades(closed_trades)
+	st.markdown(f"### **Open Trades (Winning: <span style='color:green;'>{open_trades[open_trades.change_perc > 0].change_perc.count()}</span> | Loosing: <span style='color:red;'>{open_trades[open_trades.change_perc <= 0].change_perc.count()}</span>) **",
+			unsafe_allow_html=True)
+	report_open_trades(open_trades)
+	st.markdown("### **Closed Trades**")
+	report_closed_trades(closed_trades)
+except Exception as e:
+	pass
