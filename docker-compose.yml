@@ -8,4 +8,4 @@ services:
       - "./user_data:/user_data"
       - "./Binance_volatility_trading_bot_main:/Binance_volatility_trading_bot_main"
     ports:
-      - 8051:8051
+      - 80:8501
