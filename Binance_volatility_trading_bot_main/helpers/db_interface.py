@@ -15,6 +15,9 @@ class DbInterface():
         self.engine = db.create_engine(f'sqlite:///{db_path}')
         self.connection = self.engine.connect()
         self.metadata = db.MetaData(self.engine)
+        
+        if 'transactions' not in self.metadata.sorted_tables:
+            self.create_db()
 
 
     def create_db(self):
