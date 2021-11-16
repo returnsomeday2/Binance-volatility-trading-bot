@@ -962,14 +962,15 @@ class BinanceVolatilityBot:
                     f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{PriceChangeIncFees_Perc:.4f}{txcolors.DEFAULT}",
                     f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{((float(self.coins_bought[coin]['volume']) * float(self.coins_bought[coin]['bought_at'])) * PriceChangeIncFees_Perc) / 100:.6f}{txcolors.DEFAULT}",
                     f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{str(time_held).split('.')[0]}{txcolors.DEFAULT}"])
-
+                
+                
                 changes2 = {'time_held': str(time_held).split('.')[0],
                             'tp_perc': self.coins_bought[coin]['take_profit'],
                             'now_at': LastPrice,
                             'sl_perc': self.coins_bought[coin]['stop_loss'],
                             'change_perc': (LastPrice - float(self.coins_bought[coin]['bought_at'])) / float(
                                 self.coins_bought[coin]['bought_at']) * 100,
-                            'profit_dollars': LastPrice,
+                            'profit_dollars': self.coins_bought[coin]['volume'] * PriceChangeIncFees_Unit,
                             'closed': 0
                             }
 
@@ -1140,7 +1141,7 @@ class BinanceVolatilityBot:
                         'tp_perc': self.coins_bought[coin]['take_profit'],
                         'now_at': LastPrice,
                         'sl_perc': self.coins_bought[coin]['stop_loss'],
-                        'profit_dollars': LastPrice,
+                        'profit_dollars': self.coins_bought[coin]['volume'] * PriceChangeIncFees_Unit,
                         'change_perc': (LastPrice - float(self.coins_bought[coin]['bought_at'])) / float(
                             self.coins_bought[coin]['bought_at']) * 100
                         }
