@@ -6,19 +6,18 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 class DbInterface():
-    db_file_name = ''
-    engine = None 
-    metadata = None 
-    connection = None 
+    db_file_name = '' #'transactions.db'
+    engine = None #db_candle.create_engine(f'sqlite:///{DB_CANDLE_FILE_NAME}')
+    metadata = None #db_candle.MetaData()
+    connection = None #engine.connect()
 
     def __init__(self, db_path):
         self.engine = db.create_engine(f'sqlite:///{db_path}')
         self.connection = self.engine.connect()
         self.metadata = db.MetaData(self.engine)
-        
-        if 'transactions' not in self.metadata.sorted_tables:
+        self.metadata.reflect()
+        if 'transactions' not in self.metadata.tables.keys():
             self.create_db()
-
 
     def create_db(self):
         self.metadata.reflect()
@@ -63,3 +62,51 @@ class DbInterface():
         query = db.update(transactions).values(update_dict)
         query = query.where(transactions.columns.symbol == symbol, transactions.columns.closed == 0)
         results = self.connection.execute(query)
+
+# if __name__ == "__main__":
+#     db_conn = DbInterface('transactions.db')
+#     db_conn.create_db()
+#
+#     #insert some data
+#     transaction1 = {
+#         "order_id": 0,
+#         "buy_time": datetime.now(),
+#         "symbol": 'BTCUSDT',
+#         "volume": 1.00005,
+#         "bought_at": 0.123456,
+#         "now_at": 0.123457,
+#         "tp_perc": 6.55,
+#         "sl_perc": 3.55,
+#         "change_perc": 0.1,
+#         "profit_dollars": 0.00005,
+#         "time_held": str(datetime.now()),
+#         "closed": 0,
+#         "sell_reason": 'NO REASON'
+#     }
+#     transaction2 = {
+#         "order_id": 1,
+#         "buy_time": datetime.now(),
+#         "symbol": 'ETHUSDT',
+#         "volume": 2.00005,
+#         "bought_at": 0.123456,
+#         "now_at": 0.123457,
+#         "tp_perc": 6.55,
+#         "sl_perc": 3.55,
+#         "change_perc": 0.1,
+#         "profit_dollars": 0.00005,
+#         "time_held": str(datetime.now()),
+#         "closed": 0,
+#         "sell_reason": 'NO REASON'
+#     }
+#     db_conn.add_record(transaction1)
+#     db_conn.add_record(transaction2)
+#
+#
+#
+#     #read data and print
+#     transactions = db.Table('transactions', db_conn.metadata, autoload=True, autoload_with=db_conn.engine)
+#     results = db_conn.connection.execute(db.select([transactions])).fetchall()
+#     df = pd.DataFrame(results)
+#     df.columns = results[0].keys()
+#     df.head(4)
+
