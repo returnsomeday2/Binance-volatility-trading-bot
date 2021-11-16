@@ -50,7 +50,7 @@ import os
 
 # use if needed to pass args to external modules
 import sys
-
+from pathlib import Path
 # used for math functions
 import math
 
@@ -66,6 +66,8 @@ import requests
 
 # Needed for colorful console output Install with: python3 -m pip install colorama (Mac/Linux) or pip install colorama (PC)
 from colorama import init
+
+from utilities.txcolors import txcolors
 
 init()
 
@@ -104,13 +106,7 @@ from helpers.db_interface import *
 import pandas as pd
 from globals import user_data_path
 # for colourful logging to the console
-class txcolors:
-    BUY = '\033[92m'
-    WARNING = '\033[93m'
-    SELL_LOSS = '\033[91m'
-    SELL_PROFIT = '\033[32m'
-    DIM = '\033[2m\033[35m'
-    DEFAULT = '\033[39m'
+
 
 
 old_out = sys.stdout
@@ -178,7 +174,10 @@ class BinanceVolatilityBot:
     DEBUG = False
     tickers = []
     hsp_head = None
+
     signalthreads = []
+    signals_status_file_name = 'signals_status.json'
+
     coins_bought = {}
     last_history_log_date = None
     discord_msg_balance_data = ""
@@ -289,6 +288,7 @@ class BinanceVolatilityBot:
         # path to the saved bot_stats file
         self.bot_stats_file_path = user_data_path + file_prefix + 'bot_stats.json'
 
+        self.signals_status_file_name = user_data_path + file_prefix + self.signals_status_file_name
         # use separate files for testing and live trading
         self.LOG_FILE = user_data_path + file_prefix + self.LOG_FILE
         self.HISTORY_LOG_FILE = user_data_path + file_prefix + self.HISTORY_LOG_FILE
@@ -322,6 +322,7 @@ class BinanceVolatilityBot:
         # print with timestamps
         self.old_out = sys.stdout
 
+        # essam transactions
         self.transactions_df = pd.DataFrame(columns=self.transactions_df_columns)
 
     def is_fiat(self):
@@ -479,12 +480,13 @@ class BinanceVolatilityBot:
                     (len(self.coins_bought) + len(volatile_coins)) < self.TRADE_SLOTS:
                 # (len(coins_bought) + exnumber + len(volatile_coins)) < TRADE_SLOTS:
                 volatile_coins[excoin] = {'buy_signal': externals[excoin]['buy_signal'], 'value': 1}
+                if excoin == 'BUSDUSDT':
+                    print('xx')
                 exnumber += 1
                 print(f"External signal received on {excoin}, purchasing ${self.TRADE_TOTAL} {self.PAIR_WITH} "
                       f"value of {excoin}!")
 
         self.balance_report(last_price)
-
         return volatile_coins, len(volatile_coins), self.historical_prices[self.hsp_head]
 
     def buy_external_signals(self):
@@ -496,7 +498,10 @@ class BinanceVolatilityBot:
         for filename in signals:
             for line in open(filename):
                 symbol = line.strip()
-                external_list[symbol] = {symbol: symbol, 'buy_signal': filename.replace('signals','').replace('//','').replace('\\','').replace('.buy','')}
+                if symbol == 'BUSDUSDT':
+                    print('xx')
+                # external_list[symbol] = {symbol: symbol, 'buy_signal': filename.replace('signals','').replace('//','').replace('\\','').replace('.buy','')}
+                external_list[symbol] = {symbol: symbol, 'buy_signal': Path(filename).stem}
             try:
                 os.remove(filename)
             except:
@@ -513,7 +518,8 @@ class BinanceVolatilityBot:
         for filename in signals:
             for line in open(filename):
                 symbol = line.strip()
-                external_list[symbol] = {symbol: symbol, 'sell_signal': filename.split('\\')[1]}
+                # external_list[symbol] = {symbol: symbol, 'sell_signal': filename.replace('signals','').replace('//','').replace('\\','').replace('.sell','')}
+                external_list[symbol] = {symbol: symbol, 'sell_signal': Path(filename).stem}
                 if self.DEBUG: print(f'{symbol} added to sell_external_signals() list')
             try:
                 os.remove(filename)
@@ -706,6 +712,8 @@ class BinanceVolatilityBot:
 
                 self.bot_paused = True
 
+            # reporting and health checks
+            self.track_module_status()
             # Sell function needs to work even while paused
             coins_sold = self.sell_coins()
             self.remove_from_portfolio(coins_sold)
@@ -955,13 +963,24 @@ class BinanceVolatilityBot:
                     f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{((float(self.coins_bought[coin]['volume']) * float(self.coins_bought[coin]['bought_at'])) * PriceChangeIncFees_Perc) / 100:.6f}{txcolors.DEFAULT}",
                     f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{str(time_held).split('.')[0]}{txcolors.DEFAULT}"])
 
+                changes2 = {'time_held': str(time_held).split('.')[0],
+                            'tp_perc': self.coins_bought[coin]['take_profit'],
+                            'now_at': LastPrice,
+                            'sl_perc': self.coins_bought[coin]['stop_loss'],
+                            'change_perc': (LastPrice - float(self.coins_bought[coin]['bought_at'])) / float(
+                                self.coins_bought[coin]['bought_at']) * 100,
+                            'profit_dollars': LastPrice,
+                            'closed': 0
+                            }
+
+                self.update_transaction_history_data(coin=coin, changes2=changes2)
                 continue
             else:
                 self.coins_bought[coin]['TTP_TSL'] = False
+
             # check that the price is below the stop loss or above take profit (if trailing stop loss not used) and sell if this is the case
             sellCoin = False
             sell_reason = ""
-
             if self.SELL_ON_SIGNAL_ONLY:
                 # only sell if told to by external signal
                 if coin in externals:
@@ -1117,18 +1136,11 @@ class BinanceVolatilityBot:
                         f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{((float(self.coins_bought[coin]['volume']) * float(self.coins_bought[coin]['bought_at'])) * PriceChangeIncFees_Perc) / 100:.6f}{txcolors.DEFAULT}",
                         f"{txcolors.SELL_PROFIT if ProfitAfterFees >= 0. else txcolors.SELL_LOSS}{str(time_held).split('.')[0]}{txcolors.DEFAULT}"])
 
-            # changes = {'Time Held': str(time_held).split('.')[0],
-            #            'TP %': self.coins_bought[coin]['take_profit'],
-            #            'Now At': LastPrice,
-            #            'SL %': self.coins_bought[coin]['stop_loss'],
-            #            'Profit $': PriceChangeIncFees_Perc,
-            #            'Change %': (LastPrice - float(self.coins_bought[coin]['bought_at']))/float(self.coins_bought[coin]['bought_at'])*100}
-
             changes2 = {'time_held': str(time_held).split('.')[0],
                         'tp_perc': self.coins_bought[coin]['take_profit'],
                         'now_at': LastPrice,
                         'sl_perc': self.coins_bought[coin]['stop_loss'],
-                        'profit_dollars': PriceChangeIncFees_Perc,
+                        'profit_dollars': LastPrice,
                         'change_perc': (LastPrice - float(self.coins_bought[coin]['bought_at'])) / float(
                             self.coins_bought[coin]['bought_at']) * 100
                         }
@@ -1545,6 +1557,9 @@ class BinanceVolatilityBot:
                         break
                 prevcoincount = len(self.tickers)
 
+                # tickers=[line.strip() for line in open(TICKERS_LIST)]
+                # Reload coins, also adding those coins that we currently hold
+                # tickers=list(set([line.strip() for line in open(TICKERS_LIST)] + [coin['symbol'].removesuffix(PAIR_WITH) for coin in coins_bought.values()]))
                 self.tickers = list(set(
                     [line.strip() for line in open(self.TICKERS_LIST)] + [rchop(coin['symbol'], self.PAIR_WITH) for coin
                                                                           in self.coins_bought.values()]))
@@ -1595,7 +1610,11 @@ class BinanceVolatilityBot:
         if os.path.isfile(self.coins_bought_file_path):
             with open(self.coins_bought_file_path, 'w') as file:
                 file.write("")
-				
+
+        # if os.path.isfile(self.transactions_file_path):
+        #     with open(self.transactions_file_path, 'w') as file:
+        #         file.write(",".join(self.transactions_df_columns))
+
         if os.path.exists(self.HISTORY_LOG_FILE):
             with open(self.HISTORY_LOG_FILE, 'w') as f:
                 f.write("")
@@ -1652,7 +1671,49 @@ class BinanceVolatilityBot:
                 if self.total_capital != self.total_capital_config:
                     self.historic_profit_incfees_perc = (
                                                                     self.historic_profit_incfees_total / self.total_capital_config) * 100
+    def track_module_status(self):
+        """
+        This module created by Essam to track modules run in other threads for errors
+        This is important to keep track of any errors
+        stackoverflow.com/questions/22125256/python-multiprocessing-watch-a-process-and-restart-it-when-fails
+        """
+        module_status = []
+        module_status.append(
+            {
+            'signal': 'BinanceDetectMooning',
+            'status': 'active',
+            'updated': str(datetime.now()).split('.')[0],
+            'message': 'working'}
+        )
 
+        for p in self.signalthreads:
+            # if p.exitcode is None and not p.is_alive():  # Not finished and not running
+            #     # Do your error handling and restarting here assigning the new process to processes[n]
+            #     print(p.name, ' is gone as if never born!')
+            if p.exitcode is not None: # and p.exitcode < 0:
+                module_status.append({
+                    'signal': p.name,
+                    'status':'not active',
+                    'updated':str(datetime.now()).split('.')[0],
+                    'message':f'Process {p.name} ended with an error or a terminate: {p.exitcode}'}
+                )
+                print(f'Process {p.name} ended with an error or a terminate: {p.exitcode}')
+                # Handle this either by restarting or delete the entry so it is removed from list as for else
+            elif p.is_alive():
+                module_status.append({
+                    'signal': p.name,
+                    'status': 'active',
+                    'updated': str(datetime.now()).split('.')[0],
+                    'message': 'working'}
+                )
+
+                # print(a, 'finished')
+                # p.join()  # Allow tidyup
+                # del processes[n]  # Removed finished items from the dictionary
+
+        # save the coins in value json file in the same directory
+        with open(self.signals_status_file_name, 'w') as file:
+            json.dump(module_status, file, indent=4)
 
     def run(self):
         # clear all historical data and open trades
@@ -1691,6 +1752,9 @@ class BinanceVolatilityBot:
         # try to load all the coins bought by the bot if the file exists and is not empty
         # if saved coins_bought json file exists and it's not empty then load it
         self.load_and_update_open_trades()
+
+        # if os.path.isfile(self.transactions_file_path) and os.stat(self.transactions_file_path).st_size != 0:
+        #     self.transactions_df = pd.read_csv(self.transactions_file_path)
 
         print('Press Ctrl-C to stop the script')
 
@@ -1748,6 +1812,7 @@ class BinanceVolatilityBot:
                 self.remove_from_portfolio(coins_sold)
 
                 #reporting and health checks
+                self.track_module_status()
                 self.update_bot_stats()
                 self.report_profile_summary()
 
@@ -1792,6 +1857,11 @@ class BinanceVolatilityBot:
 
 
 if __name__ == '__main__':
+    # req_version = (3,9)
+    # if sys.version_info[:2] < req_version:
+    #    print(f'This bot requires Python version 3.9 or higher/newer. You are running version {sys.version_info[:2]} - please upgrade your Python version!!')
+    #    sys.exit()
+
     # Load arguments then parse settings
     bot = BinanceVolatilityBot()
     bot.run()
