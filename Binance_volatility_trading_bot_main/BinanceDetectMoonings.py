@@ -1,4 +1,5 @@
 """
+Essam Debie
 Version: 0.01
 
 Disclaimer
@@ -1144,7 +1145,7 @@ class BinanceVolatilityBot:
                         'tp_perc': self.coins_bought[coin]['take_profit'],
                         'now_at': LastPrice,
                         'sl_perc': self.coins_bought[coin]['stop_loss'],
-                        'profit_dollars': self.coins_bought[coin]['volume'] * PriceChangeIncFees_Unit,
+                        'profit_dollars': ((float(self.coins_bought[coin]['volume']) * float(self.coins_bought[coin]['bought_at'])) * PriceChangeIncFees_Perc) / 100,
                         # 'change_perc': (LastPrice - float(self.coins_bought[coin]['bought_at'])) / float(
                         #     self.coins_bought[coin]['bought_at']) * 100
                         'change_perc': PriceChangeIncFees_Perc,
