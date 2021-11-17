@@ -693,7 +693,7 @@ class BinanceVolatilityBot:
 
     def pause_bot(self):
         '''Pause the script when external indicators detect value bearish trend in the market'''
-        # self.report_profile_summary()
+
         # start counting for how long the bot has been paused
         start_time = time.perf_counter()
 
@@ -718,7 +718,7 @@ class BinanceVolatilityBot:
             coins_sold = self.sell_coins()
             self.remove_from_portfolio(coins_sold)
             last_price = self.get_price(True)
-            self.report_profile_summary()
+            self.report_profile_summary(last_price)
             # pausing here
             if self.hsp_head == 1:
                 # print(f'Paused...Session profit: {self.session_profit_incfees_perc:.2f}% Est: ${session_profit_incfees_total:.{decimals()}f} {PAIR_WITH}')
@@ -1151,8 +1151,6 @@ class BinanceVolatilityBot:
                         'change_perc': PriceChangeIncFees_Perc,
                         }
 
-
-
             self.update_transaction_history_data(coin=coin, changes2=changes2)
         my_table.sortby = 'Change %'
         # my_table.reversesort = True
@@ -1345,14 +1343,14 @@ class BinanceVolatilityBot:
         with open(self.bot_stats_file_path, 'w') as file:
             json.dump(bot_stats, file, indent=4)
 
-    def report_profile_summary(self):
+    def report_profile_summary(self, last_price):
         # unrealised_session_profit_incfees_perc = 0
         unrealised_session_profit_incfees_total = 0
 
         BUDGET = self.TRADE_SLOTS * self.TRADE_TOTAL
         exposure_calcuated = 0
 
-        last_price = self.get_price(True)
+        # last_price = self.get_price(False)
 
         for coin in list(self.coins_bought):
             LastPrice = float(last_price[coin]['price'])
@@ -1820,7 +1818,7 @@ class BinanceVolatilityBot:
                 #reporting and health checks
                 self.track_module_status()
                 self.update_bot_stats()
-                self.report_profile_summary()
+                self.report_profile_summary(last_price)
 
             except ReadTimeout as rt:
                 TIMEOUT_COUNT += 1
