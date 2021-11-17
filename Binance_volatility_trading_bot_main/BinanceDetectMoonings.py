@@ -1,5 +1,4 @@
 """
-Essam Debie
 Version: 0.01
 
 Disclaimer
