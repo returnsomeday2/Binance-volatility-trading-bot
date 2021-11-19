@@ -18,6 +18,18 @@ script_options:
 # These options apply to data collection service
 data_options:
   DB_TRANSACTIONS_FILE_NAME: transactions.db
+  DB_TYPE: POSTGRES #SQLITE
+  POSTGRESS_HOST: postgres_server #local_host
+  POSTGRESS_PORT: 5432
+  POSTGRESS_DB: candles
+  POSTGRES_USER: postgres
+  POSTGRES_PASS: postgres
+  INIT_START: True
+  INTERVAL: 1m
+  INIT_PERIOD: 201 hours ago UTC
+  DB_TRANSACTIONS_FILE_NAME: transactions.db
+  DB_CANDLE_FILE_NAME: candles.db
+  DB_STUDY_FILE_NAME: study.db
 
 # These options apply to the trading methods the script executes
 trading_options:
