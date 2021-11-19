@@ -1,0 +1,7 @@
+python-binance==1.0.15
+PyYAML==5.4.1
+requests==2.25.1
+SQLAlchemy==1.4.25
+sqlalchemy-utils
+psycopg2-binary==2.9.1
+pandas

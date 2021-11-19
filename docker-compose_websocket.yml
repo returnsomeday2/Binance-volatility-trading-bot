@@ -1,0 +1,35 @@
+services:
+  postgres_server:
+       image: postgres
+       hostname: postgres_server
+       restart: always
+       environment:
+         POSTGRES_DB: postgres
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: postgres
+       ports:
+         - 5434:5432
+       volumes:
+         - "./postgres_data:/var/lib/postgresql/data"
+       healthcheck:
+          #test: ["CMD-SHELL", "pg_isready -U postgres"]
+          test: "pg_isready --username=postgres && psql --username=postgres --list"
+          interval: 5s
+          timeout: 10s
+          retries: 5
+
+  websocket:
+    build:
+      context: .
+      dockerfile: dockerfile_websocket
+      # target: production-stage
+    restart: unless-stopped
+    container_name: websocket
+    volumes:
+      - "./user_data:/user_data"
+      - "./Binance_volatility_trading_bot_main:/Binance_volatility_trading_bot_main"
+    # Expose api on port 80 (localhost only)
+    # before enabling this.
+    depends_on:
+      "postgres_server":
+         condition: service_healthy
